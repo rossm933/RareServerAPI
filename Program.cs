@@ -76,6 +76,17 @@ namespace RareServerAPI
                 return users;
             });
 
+            app.MapGet("/users/{id}", (int id) =>
+            {
+                Users user = users.FirstOrDefault(e => e.Id == id);
+                if (id == null)
+                {
+                    return Results.NotFound();
+                }
+                return Results.Ok(user);
+
+            });
+
             app.MapPost("/users", (Users newUsers) =>
             {
                 newUsers.Id = users.Max(user => user.Id) + 1;
