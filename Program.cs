@@ -48,7 +48,42 @@ namespace RareServerAPI
                 Active = false
             }
         };
-
+            List<Posts> posts = new List<Posts>
+        {
+            new Posts
+            {
+                Id = 1,
+                UserId = 101,
+                CategoryId = 5,
+                Title = "First Post",
+                PublishedOn = DateTime.Now.AddDays(-10),
+                ImageUrl = null,
+                Content = "This is the content of the first post.",
+                Approved = true
+            },
+            new Posts
+            {
+                Id = 2,
+                UserId = 102,
+                CategoryId = 3,
+                Title = "Second Post",
+                PublishedOn = DateTime.Now.AddDays(-5),
+                ImageUrl = null,
+                Content = "This is the content of the second post.",
+                Approved = false
+            },
+            new Posts
+            {
+                Id = 3,
+                UserId = 103,
+                CategoryId = 1,
+                Title = "Third Post",
+                PublishedOn = DateTime.Now.AddDays(-2),
+                ImageUrl = null,
+                Content = "This is the content of the third post.",
+                Approved = true
+            }
+        };
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
@@ -71,9 +106,82 @@ namespace RareServerAPI
 
             app.UseAuthorization();
 
+            // Get all posts
+            app.MapGet("/posts", () =>
+            {
+                return posts;
+            });
+            
+            // Get all posts by id
+            app.MapGet("/posts/{id}", (int id) =>
+            {
+                Posts post = posts.FirstOrDefault(e => e.Id == id);
+                if (post == null)
+                {
+                    return Results.NotFound();
+                }
+                return Results.Ok(post);
+            });
+
+            // Create a post
+            app.MapPost("/posts", (Posts post) =>
+            {
+
+                post.Id = posts.Max(st => st.Id) + 1;
+                posts.Add(post);
+                return post;
+            });
+
+
+            // Delete a post
+            app.MapDelete("/posts/{id}", (int id) =>
+            {
+                Posts post = posts.FirstOrDefault(st => st.Id == id);
+                posts.Remove(post);
+            });
+
+            // Update a Post
+            app.MapPut("/posts/{id}", (int id, Posts post) =>
+            {
+                Posts postToUpdate = posts.FirstOrDefault(st => st.Id == id);
+                int postIndex = posts.IndexOf(postToUpdate);
+                if (postToUpdate == null)
+                {
+                    return Results.NotFound();
+                }
+                if (id != post.Id)
+                {
+                    return Results.BadRequest();
+                }
+                posts[postIndex] = post;
+                return Results.Ok();
+            });
+
+            // Get a users posts
+            app.MapGet("/posts/user/{userId}", (int userId) =>
+            {
+                var userPosts = posts.Where(p => p.UserId == userId).ToList();
+                if (userPosts == null || !userPosts.Any())
+                {
+                    return Results.NotFound($"No posts found for user.");
+                }
+                return Results.Ok(userPosts);
+            });
+
             app.MapGet("/users", () =>
             {
                 return users;
+            });
+
+            app.MapGet("/users/{id}", (int id) =>
+            {
+                Users user = users.FirstOrDefault(e => e.Id == id);
+                if (id == null)
+                {
+                    return Results.NotFound();
+                }
+                return Results.Ok(user);
+
             });
 
             app.MapPost("/users", (Users newUsers) =>
