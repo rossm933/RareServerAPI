@@ -84,6 +84,29 @@ namespace RareServerAPI
                 Approved = true
             }
         };
+            List<Categories> categories = new List<Categories>
+            {
+            new Categories
+            {
+                Id = 1,
+                Label = "Technology"
+            },
+            new Categories
+            {
+                Id = 2,
+                Label = "Science"
+            },
+            new Categories
+            {
+                Id = 3,
+                Label = "Art"
+            },
+            new Categories
+            {
+                Id = 4,
+                Label = "Sports"
+            }
+            };
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
@@ -166,6 +189,21 @@ namespace RareServerAPI
                     return Results.NotFound($"No posts found for user.");
                 }
                 return Results.Ok(userPosts);
+            });
+
+            // Get Categories
+            app.MapGet("/categories", () =>
+            {
+                return Results.Ok(categories);
+            });
+
+            // Create a Category
+            app.MapPost("/categories", (Categories category) =>
+            {
+
+                category.Id = categories.Max(st => st.Id) + 1;
+                categories.Add(category);
+                return category;
             });
 
             app.MapGet("/users", () =>
