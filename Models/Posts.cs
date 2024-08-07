@@ -12,6 +12,7 @@
         public string? Content { get; set; }
 
         public bool Approved { get; set; }
+        public List<Tags>? Tags { get; set; }
 
     }
 }
