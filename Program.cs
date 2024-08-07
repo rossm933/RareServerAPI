@@ -204,11 +204,22 @@ namespace RareServerAPI
             });
 
             // View User List (username, first/last name, email, ordered by username)
-            // Getting 403 error in postman
             app.MapGet("/users/userList", () =>
             {
                 var userList = users.OrderBy(user => user.Username).ToList();
                 return Results.Ok(userList);
+            });
+
+            //Filter by User
+            app.MapGet("/posts/user/filterby/{userId}", (int id, int userId) =>
+            {
+                Users filteredUser = users.FirstOrDefault(user => user.Id == id);
+                if (filteredUser == null)
+                {
+                    return Results.NotFound();
+                }
+                var filteredPosts = posts.Where(post => post.UserId == userId).ToList();
+                return Results.Ok(filteredPosts);
             });
 
             app.Run();
