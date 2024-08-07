@@ -1,4 +1,5 @@
 using RareServerAPI.Models;
+using System.Reflection.Emit;
 namespace RareServerAPI
 {
     public class Program
@@ -54,7 +55,7 @@ namespace RareServerAPI
             {
                 Id = 1,
                 UserId = 101,
-                CategoryId = 5,
+                CategoryId = 4,
                 Title = "First Post",
                 PublishedOn = DateTime.Now.AddDays(-10),
                 ImageUrl = null,
@@ -84,6 +85,47 @@ namespace RareServerAPI
                 Approved = true
             }
         };
+            List<Categories> categories = new List<Categories>
+            {
+            new Categories
+            {
+                Id = 1,
+                Label = "Technology"
+            },
+            new Categories
+            {
+                Id = 2,
+                Label = "Science"
+            },
+            new Categories
+            {
+                Id = 3,
+                Label = "Art"
+            },
+            new Categories
+            {
+                Id = 4,
+                Label = "Sports"
+            }
+            };
+            List<Tags> tags = new List<Tags>
+            {
+                new Tags
+                {
+                TagId = 1,
+                Label = "Travel Goals"
+                },
+                new Tags
+                {
+                TagId = 2,
+                Label = "Foodie Finds"
+                },
+                new Tags
+                {
+                TagId = 3,
+                Label = "Tech Trends"
+                },
+            };
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
@@ -121,7 +163,8 @@ namespace RareServerAPI
             // Get all posts
             app.MapGet("/posts", () =>
             {
-                return posts;
+                var orderedPosts = posts.OrderByDescending(c => c.PublishedOn).ToList();
+                return Results.Ok(orderedPosts);
             });
             
             // Get all posts by id
@@ -180,6 +223,22 @@ namespace RareServerAPI
                 return Results.Ok(userPosts);
             });
 
+            // Get Categories
+            app.MapGet("/categories", () =>
+            {
+                var orderedCategories = categories.OrderBy(c => c.Label).ToList();
+                return Results.Ok(orderedCategories);
+            });
+
+            // Create a Category
+            app.MapPost("/categories", (Categories category) =>
+            {
+
+                category.Id = categories.Max(st => st.Id) + 1;
+                categories.Add(category);
+                return category;
+            });
+
             app.MapGet("/users", () =>
             {
                 return users;
@@ -210,16 +269,31 @@ namespace RareServerAPI
                 return Results.Ok(userList);
             });
 
-            //Filter by User
-            app.MapGet("/posts/user/filterby/{userId}", (int id, int userId) =>
+            // Filter post list by category
+            app.MapGet("/posts/category/{id}", (int id) =>
             {
-                Users filteredUser = users.FirstOrDefault(user => user.Id == id);
-                if (filteredUser == null)
+                var postByCategory = posts.Where(p => p.CategoryId == id).ToList();
+                if (id == null)
                 {
                     return Results.NotFound();
                 }
-                var filteredPosts = posts.Where(post => post.UserId == userId).ToList();
-                return Results.Ok(filteredPosts);
+                return Results.Ok(postByCategory);
+
+            });
+
+            //Create Tag
+            app.MapPost("/tags", (Tags newTags) =>
+            {
+                newTags.TagId = tags.Max(tag => tag.TagId) + 1;
+                tags.Add(newTags);
+                return tags;
+            });
+
+            //View Tag List
+            app.MapGet("/tags", () =>
+            {
+                var sortedTags = tags.OrderBy(tag => tag.Label).ToList();
+                return sortedTags;
             });
 
             app.Run();
