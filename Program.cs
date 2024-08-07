@@ -85,6 +85,29 @@ namespace RareServerAPI
                 Approved = true
             }
         };
+            List<Categories> categories = new List<Categories>
+            {
+            new Categories
+            {
+                Id = 1,
+                Label = "Technology"
+            },
+            new Categories
+            {
+                Id = 2,
+                Label = "Science"
+            },
+            new Categories
+            {
+                Id = 3,
+                Label = "Art"
+            },
+            new Categories
+            {
+                Id = 4,
+                Label = "Sports"
+            }
+            };
             List<Tags> tags = new List<Tags>
             {
                 new Tags
@@ -140,7 +163,8 @@ namespace RareServerAPI
             // Get all posts
             app.MapGet("/posts", () =>
             {
-                return posts;
+                var orderedPosts = posts.OrderByDescending(c => c.PublishedOn).ToList();
+                return Results.Ok(orderedPosts);
             });
             
             // Get all posts by id
@@ -197,6 +221,22 @@ namespace RareServerAPI
                     return Results.NotFound($"No posts found for user.");
                 }
                 return Results.Ok(userPosts);
+            });
+
+            // Get Categories
+            app.MapGet("/categories", () =>
+            {
+                var orderedCategories = categories.OrderBy(c => c.Label).ToList();
+                return Results.Ok(orderedCategories);
+            });
+
+            // Create a Category
+            app.MapPost("/categories", (Categories category) =>
+            {
+
+                category.Id = categories.Max(st => st.Id) + 1;
+                categories.Add(category);
+                return category;
             });
 
             app.MapGet("/users", () =>
