@@ -1,4 +1,5 @@
 using RareServerAPI.Models;
+using System.Reflection.Emit;
 namespace RareServerAPI
 {
     public class Program
@@ -84,6 +85,24 @@ namespace RareServerAPI
                 Approved = true
             }
         };
+            List<Tags> tags = new List<Tags>
+            {
+                new Tags
+                {
+                TagId = 1,
+                Label = "Travel Goals"
+                },
+                new Tags
+                {
+                TagId = 2,
+                Label = "Foodie Finds"
+                },
+                new Tags
+                {
+                TagId = 3,
+                Label = "Tech Trends"
+                },
+            };
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
@@ -201,6 +220,21 @@ namespace RareServerAPI
                 newUsers.Id = users.Max(user => user.Id) + 1;
                 users.Add(newUsers);
                 return users;
+            });
+
+            //Create Tag
+            app.MapPost("/tags", (Tags newTags) =>
+            {
+                newTags.TagId = tags.Max(tag => tag.TagId) + 1;
+                tags.Add(newTags);
+                return tags;
+            });
+
+            //View Tag List
+            app.MapGet("/tags", () =>
+            {
+                var sortedTags = tags.OrderBy(tag => tag.Label).ToList();
+                return sortedTags;
             });
 
             app.Run();
