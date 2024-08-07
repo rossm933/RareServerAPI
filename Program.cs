@@ -55,7 +55,7 @@ namespace RareServerAPI
             {
                 Id = 1,
                 UserId = 101,
-                CategoryId = 5,
+                CategoryId = 4,
                 Title = "First Post",
                 PublishedOn = DateTime.Now.AddDays(-10),
                 ImageUrl = null,
@@ -260,6 +260,25 @@ namespace RareServerAPI
                 newUsers.Id = users.Max(user => user.Id) + 1;
                 users.Add(newUsers);
                 return users;
+            });
+
+            // View User List (username, first/last name, email, ordered by username)
+            app.MapGet("/users/userList", () =>
+            {
+                var userList = users.OrderBy(user => user.Username).ToList();
+                return Results.Ok(userList);
+            });
+
+            // Filter post list by category
+            app.MapGet("/posts/category/{id}", (int id) =>
+            {
+                var postByCategory = posts.Where(p => p.CategoryId == id).ToList();
+                if (id == null)
+                {
+                    return Results.NotFound();
+                }
+                return Results.Ok(postByCategory);
+
             });
 
             //Create Tag
