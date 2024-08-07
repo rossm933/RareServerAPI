@@ -132,7 +132,8 @@ namespace RareServerAPI
             // Get all posts
             app.MapGet("/posts", () =>
             {
-                return posts;
+                var orderedPosts = posts.OrderByDescending(c => c.PublishedOn).ToList();
+                return Results.Ok(orderedPosts);
             });
             
             // Get all posts by id
@@ -194,7 +195,8 @@ namespace RareServerAPI
             // Get Categories
             app.MapGet("/categories", () =>
             {
-                return Results.Ok(categories);
+                var orderedCategories = categories.OrderBy(c => c.Label).ToList();
+                return Results.Ok(orderedCategories);
             });
 
             // Create a Category
