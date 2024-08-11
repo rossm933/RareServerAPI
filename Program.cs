@@ -85,6 +85,8 @@ namespace RareServerAPI
                 Approved = true
             }
         };
+
+        };
             List<Categories> categories = new List<Categories>
             {
             new Categories
@@ -260,6 +262,11 @@ namespace RareServerAPI
                 newUsers.Id = users.Max(user => user.Id) + 1;
                 users.Add(newUsers);
                 return users;
+            });
+
+            app.MapGet("/users/", (UsersDTO userdetails) =>
+            {
+
             });
 
             //Create Tag
