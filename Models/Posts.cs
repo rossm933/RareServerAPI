@@ -13,6 +13,7 @@
 
         public bool Approved { get; set; }
         public List<Tags>? Tags { get; set; }
+        public List<int>? TagIds { get; set; }
 
     }
 }
