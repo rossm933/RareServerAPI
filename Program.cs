@@ -1,5 +1,4 @@
 using RareServerAPI.Models;
-using System.Reflection.Emit;
 namespace RareServerAPI
 {
     public class Program
@@ -18,7 +17,7 @@ namespace RareServerAPI
                 Password = "password123",
                 Bio = "Software developer with a passion for open-source projects.",
                 Username = "johndoe",
-                UserImage = null,
+                UserImage = "https://images.playground.com/7344181b53c14f018042ea2a7ec1cc3e.jpeg",
                 CreatedOn = DateTime.Now.AddYears(-2),
                 Active = true
             },
@@ -31,7 +30,7 @@ namespace RareServerAPI
                 Password = "securepassword",
                 Bio = "Graphic designer and illustrator.",
                 Username = "janesmith",
-                UserImage = null,
+                UserImage = "-.-",
                 CreatedOn = DateTime.Now.AddYears(-1),
                 Active = true
             },
@@ -44,7 +43,7 @@ namespace RareServerAPI
                 Password = "alicepassword",
                 Bio = "Content writer and blogger.",
                 Username = "alicejohnson",
-                UserImage = null,
+                UserImage = ":D",
                 CreatedOn = DateTime.Now.AddMonths(-6),
                 Active = false
             }
@@ -54,35 +53,52 @@ namespace RareServerAPI
             new Posts
             {
                 Id = 1,
-                UserId = 101,
-                CategoryId = 4,
+                UserId = 1,
+                CategoryId = 5,
+                Title = "First Post",
+                PublishedOn = DateTime.Now.AddDays(-10),
+                ImageUrl = null,
+                Content = "I'm a lil dough monster... Please don't bake me.",
+                Approved = true,
+                TagIds = new List<int> { 1 }
+
+            },
+
+            new Posts
+            {
+                Id = 4,
+                UserId = 1,
+                CategoryId = 5,
                 Title = "First Post",
                 PublishedOn = DateTime.Now.AddDays(-10),
                 ImageUrl = null,
                 Content = "This is the content of the first post.",
-                Approved = true
+                Approved = true,
+                TagIds = new List<int> { 1, 2 }
             },
             new Posts
             {
                 Id = 2,
-                UserId = 102,
+                UserId = 2,
                 CategoryId = 3,
                 Title = "Second Post",
                 PublishedOn = DateTime.Now.AddDays(-5),
                 ImageUrl = null,
                 Content = "This is the content of the second post.",
-                Approved = false
+                Approved = false,
+                TagIds = new List<int> { 3, 2 }
             },
             new Posts
             {
                 Id = 3,
-                UserId = 103,
+                UserId = 3,
                 CategoryId = 1,
                 Title = "Third Post",
                 PublishedOn = DateTime.Now.AddDays(-2),
                 ImageUrl = null,
                 Content = "This is the content of the third post.",
-                Approved = true
+                Approved = true,
+                TagIds = new List<int> { 2 }
             }
         };
             List<Categories> categories = new List<Categories>
@@ -126,6 +142,31 @@ namespace RareServerAPI
                 Label = "Tech Trends"
                 },
             };
+            List<Subscriptions> subs = new List<Subscriptions>
+                {
+                new Subscriptions
+                {
+                    Id = 1,
+                    AuthorId = 2,
+                    FollowerId = 3,
+                    CreatedDate = DateTime.Now.AddMonths(-6)
+                },
+                new Subscriptions
+                {
+                    Id = 2,
+                    AuthorId = 3,
+                    FollowerId = 1,
+                    CreatedDate = DateTime.Now.AddMonths(-3)
+                },
+                 new Subscriptions
+                {
+                    Id = 3,
+                    AuthorId = 3,
+                    FollowerId = 2,
+                    CreatedDate = DateTime.Now.AddMonths(-4)
+                },
+            };
+
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
@@ -170,7 +211,7 @@ namespace RareServerAPI
             // Get all posts by id
             app.MapGet("/posts/{id}", (int id) =>
             {
-                Posts post = posts.FirstOrDefault(e => e.Id == id);
+                Posts? post = posts.FirstOrDefault(e => e.Id == id);
                 if (post == null)
                 {
                     return Results.NotFound();
@@ -187,7 +228,6 @@ namespace RareServerAPI
                 return post;
             });
 
-
             // Delete a post
             app.MapDelete("/posts/{id}", (int id) =>
             {
@@ -198,7 +238,7 @@ namespace RareServerAPI
             // Update a Post
             app.MapPut("/posts/{id}", (int id, Posts post) =>
             {
-                Posts postToUpdate = posts.FirstOrDefault(st => st.Id == id);
+                Posts? postToUpdate = posts.FirstOrDefault(st => st.Id == id);
                 int postIndex = posts.IndexOf(postToUpdate);
                 if (postToUpdate == null)
                 {
@@ -239,14 +279,16 @@ namespace RareServerAPI
                 return category;
             });
 
+            //Get all users sorted alphabetically
             app.MapGet("/users", () =>
             {
-                return users;
+                return users.OrderBy(u => u.Username);
             });
 
-            app.MapGet("/users/{id}", (int id) =>
+            //Get a user by Id
+            app.MapGet("/users/{id}", (int? id) =>
             {
-                Users user = users.FirstOrDefault(e => e.Id == id);
+                Users? user = users.FirstOrDefault(e => e.Id == id);
                 if (id == null)
                 {
                     return Results.NotFound();
@@ -255,6 +297,7 @@ namespace RareServerAPI
 
             });
 
+            //Post a user
             app.MapPost("/users", (Users newUsers) =>
             {
                 newUsers.Id = users.Max(user => user.Id) + 1;
@@ -295,6 +338,111 @@ namespace RareServerAPI
                 var sortedTags = tags.OrderBy(tag => tag.Label).ToList();
                 return sortedTags;
             });
+
+            //all subscriptions
+            app.MapGet("/subscriptions", () =>
+            {
+                return subs;
+            });
+
+            //Get a users subscibers
+            app.MapGet("/subscriptions/subscribers/{id}", (int? id) =>
+            {
+                var sub = subs.Where(s => s.AuthorId == id);
+                if (id == null)
+                {
+                    return Results.NotFound();
+                }
+                return Results.Ok(sub);
+            });
+
+            //Get a users subscriptions
+            app.MapGet("/subscriptions/following/{id}", (int? id) =>
+            {
+                var sub = subs.Where(s => s.FollowerId == id);
+                if (id == null)
+                {
+                    return Results.NotFound();
+                }
+                return Results.Ok(sub);
+            });
+
+            //Create a new subscription date, FollowerId and Id included in creation
+            app.MapPost("/subscriptions/{id}", (int? id, Subscriptions newSub) =>
+             {
+                 newSub.Id = subs.Max(sub => sub.Id) +1;
+                 newSub.AuthorId = id;
+                 newSub.CreatedDate = DateTime.Now;
+                 subs.Add(newSub);
+                 return subs;
+
+             });
+
+            // Delete a subscription
+            app.MapDelete("/subscriptions/{id}", (int? id) =>
+            {
+                Subscriptions? sub = subs.FirstOrDefault(s => s.Id == id);
+                subs.Remove(sub);
+                return Results.Ok(subs);
+            });
+
+            //gets a single subscription 1 would be a uid if a more complex app was being made
+            app.MapGet("/subscriptions/1/{id}", (int? id) =>
+            {
+                var sub = subs.FirstOrDefault(s => s.FollowerId == 1 && s.AuthorId == id);
+                if (sub == null)
+                {
+                    return Results.Ok(new { }); // Return an empty object if no subscription is found
+                }
+                    return Results.Ok(sub);
+            });
+
+
+            // Get all Posts with Tags
+            app.MapGet("/posts_and_tags", () =>
+            {
+                // Join posts with their tags based on TagIds
+                var postsWithTags = posts.Select(post => new
+                {
+                    post.Id,
+                    post.UserId,
+                    post.CategoryId,
+                    post.Title,
+                    post.PublishedOn,
+                    post.ImageUrl,
+                    post.Content,
+                    post.Approved,
+                    Tags = tags.Where(tag => post.TagIds.Contains(tag.TagId)).ToList()
+                });
+
+                return Results.Ok(postsWithTags);
+            });
+
+            // Get a specific Post with Tags by its ID
+            app.MapGet("/posts_and_tags/{id}", (int id) =>
+            {
+                var post = posts.SingleOrDefault(p => p.Id == id);
+
+                // Get the tags associated with the post
+                var tagsForPost = tags.Where(tag => post.TagIds.Contains(tag.TagId)).ToList();
+
+                // Create an anonymous object to represent the post with its tags
+                var postWithTags = new
+                {
+                    post.Id,
+                    post.UserId,
+                    post.CategoryId,
+                    post.Title,
+                    post.PublishedOn,
+                    post.ImageUrl,
+                    post.Content,
+                    post.Approved,
+                    Tags = tagsForPost
+                };
+
+                return Results.Ok(postWithTags);
+            });
+
 
             app.Run();
         }
