@@ -305,6 +305,25 @@ namespace RareServerAPI
                 return users;
             });
 
+            // View User List (username, first/last name, email, ordered by username)
+            app.MapGet("/users/userList", () =>
+            {
+                var userList = users.OrderBy(user => user.Username).ToList();
+                return Results.Ok(userList);
+            });
+
+            // Filter post list by category
+            app.MapGet("/posts/category/{id}", (int id) =>
+            {
+                var postByCategory = posts.Where(p => p.CategoryId == id).ToList();
+                if (id == null)
+                {
+                    return Results.NotFound();
+                }
+                return Results.Ok(postByCategory);
+
+            });
+
             //Create Tag
             app.MapPost("/tags", (Tags newTags) =>
             {
